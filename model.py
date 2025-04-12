@@ -5,7 +5,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 
 
 
-hf_token = "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"
+hf_token = "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"
 # Retrieve your Hugging Face key from the environment
 # hf_token = os.getenv(HF_TOKEN)
 # if not hf_token:
