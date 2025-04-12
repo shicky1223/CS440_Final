@@ -1,15 +1,15 @@
 import os
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from dotenv import load_dotenv  
+  
 
-# Load environment variables from .env if present
-load_dotenv()
 
+
+hf_token = "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"
 # Retrieve your Hugging Face key from the environment
-hf_token = os.getenv("HF_TOKEN")
-if not hf_token:
-    raise ValueError("Please set your HF_TOKEN environment variable.")
+# hf_token = os.getenv(HF_TOKEN)
+# if not hf_token:
+#     raise ValueError("Please set your HF_TOKEN environment variable.")
 
 MODEL_NAME = "EleutherAI/gpt-neo-2.7B"
 print(f"Loading model '{MODEL_NAME}'...")
