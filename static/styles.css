@@ -1,0 +1,89 @@
+/* Basic reset and body styling */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
+  
+  /* Chat container styling */
+  .chat-container {
+    width: 90%;
+    max-width: 600px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  /* Header style */
+  .chat-header {
+    background-color: #007acc;
+    color: #fff;
+    padding: 16px;
+    text-align: center;
+  }
+  
+  /* Chat box where messages appear */
+  .chat-box {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    background-color: #fafafa;
+  }
+  
+  /* Chat form (input area) */
+  .chat-form {
+    display: flex;
+    border-top: 1px solid #ddd;
+  }
+  
+  .chat-form input {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    font-size: 16px;
+  }
+  
+  .chat-form button {
+    padding: 12px 20px;
+    border: none;
+    background-color: #007acc;
+    color: #fff;
+    cursor: pointer;
+  }
+  
+  .chat-form button:hover {
+    background-color: #005fa3;
+  }
+  
+  /* Message bubbles styling */
+  .message {
+    margin-bottom: 12px;
+    display: flex;
+  }
+  
+  .message.user .bubble {
+    margin-left: auto;
+    background-color: #d1e7dd;
+    color: #0f5132;
+  }
+  
+  .message.ai .bubble {
+    background-color: #e2e3e5;
+    color: #41464b;
+  }
+  
+  .bubble {
+    max-width: 80%;
+    padding: 10px 16px;
+    border-radius: 20px;
+    font-size: 15px;
+    line-height: 1.4;
+  }
+  

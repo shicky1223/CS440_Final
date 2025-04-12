@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chat with AI</title>
+  <style>
+    /* Basic styles for the chat interface */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f8f8;
+      margin: 0;
+      padding: 0;
+    }
+    .chat-container {
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      height: 70vh;
+      overflow-y: auto;
+    }
+    .message {
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+    }
+    .user-message {
+      background-color: #cce5ff;
+      text-align: right;
+    }
+    .ai-message {
+      background-color: #e2e3e5;
+      text-align: left;
+    }
+    .input-area {
+      display: flex;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 10px;
+    }
+    .input-area input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .input-area button {
+      padding: 10px 20px;
+      margin-left: 10px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <!-- Chat container to display conversation -->
+  <div class="chat-container" id="chat-container">
+    <!-- Chat messages will be inserted here -->
+  </div>
+
+  <!-- Input area for sending messages -->
+  <div class="input-area">
+    <input type="text" id="user-input" placeholder="Type your message here..." autocomplete="off">
+    <button id="send-button">Send</button>
+  </div>
+
+  <script>
+    // Get references to DOM elements
+    const chatContainer = document.getElementById('chat-container');
+    const userInput = document.getElementById('user-input');
+    const sendButton = document.getElementById('send-button');
+
+    // Function to add messages to the chat container
+    function addMessage(message, sender) {
+      const messageDiv = document.createElement('div');
+      messageDiv.classList.add('message', sender === 'user' ? 'user-message' : 'ai-message');
+      messageDiv.textContent = message;
+      chatContainer.appendChild(messageDiv);
+      // Scroll to the bottom whenever a new message is added
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    // Function to send the user's message to the /chat endpoint
+    async function sendMessage() {
+      const message = userInput.value.trim();
+      if (!message) return; // Do nothing if input is empty
+
+      // Add user's message to the chat display
+      addMessage(message, 'user');
+      userInput.value = ''; // Clear input field
+
+      try {
+        const response = await fetch('/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ message: message })
+        });
+        
+        const data = await response.json();
+        // Display the AI's reply
+        addMessage(data.reply, 'ai');
+      } catch (error) {
+        console.error('Error:', error);
+        addMessage("Error: Could not connect to the server.", 'ai');
+      }
+    }
+
+    // Send message on button click
+    sendButton.addEventListener('click', sendMessage);
+
+    // Also allow sending the message when pressing the Enter key
+    userInput.addEventListener('keyup', function(event) {
+      if (event.key === 'Enter') {
+        sendMessage();
+      }
+    });
+  </script>
+</body>
+</html>
