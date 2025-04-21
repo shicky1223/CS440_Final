@@ -1,13 +1,9 @@
 import pandas as pd
-
 from sklearn.model_selection import train_test_split
-
 from sklearn.linear_model import LogisticRegression
-
 import joblib
 
 df = pd.read_csv("anxiety_depression_data.csv")
-
 df = df.dropna(subset=["Anxiety_Score"])
 
 # defines function that maps GAD-7 scores into 4 anxiety categories
