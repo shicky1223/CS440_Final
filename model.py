@@ -9,7 +9,7 @@ if not HF_TOKEN:
     raise RuntimeError("Please set $HF_TOKEN")
 
 MODEL_ID     = "meta-llama/Llama-3.2-1B-Instruct"
-SYSTEM_PROMPT = "You are a helpful, therapeutical assistant."
+SYSTEM_PROMPT = "You are a helpful, assistant."
 
 print(f"Loading {MODEL_ID}…")
 tokenizer = AutoTokenizer.from_pretrained(MODEL_ID, use_auth_token=HF_TOKEN)

@@ -60,6 +60,9 @@
   </style>
 </head>
 <body>
+  <p>Logged in as {{ username }} | <a href="{{ url_for('logout') }}">Logout</a></p>
+<!-- rest of your chat UI… -->
+
   <!-- Chat container to display conversation -->
   <div class="chat-container" id="chat-container">
     <!-- Chat messages will be inserted here -->
