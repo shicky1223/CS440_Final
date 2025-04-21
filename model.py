@@ -1,58 +1,65 @@
+from dotenv import load_dotenv
+load_dotenv()  # pip install python-dotenv
 import os
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
-  
 
+HF_TOKEN = os.getenv("HF_TOKEN")
+if not HF_TOKEN:
+    raise RuntimeError("Please set $HF_TOKEN")
 
+MODEL_ID     = "meta-llama/Llama-3.2-1B-Instruct"
+SYSTEM_PROMPT = "You are a helpful, therapeutical assistant."
 
-hf_token = "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"
-# Retrieve your Hugging Face key from the environment
-# hf_token = os.getenv(HF_TOKEN)
-# if not hf_token:
-#     raise ValueError("Please set your HF_TOKEN environment variable.")
-
-MODEL_NAME = "EleutherAI/gpt-neo-2.7B"
-print(f"Loading model '{MODEL_NAME}'...")
-
-# Load the tokenizer and model, dynamically passing your token.
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, use_auth_token=hf_token)
-model = AutoModelForCausalLM.from_pretrained(
-    MODEL_NAME,
-    torch_dtype=torch.float16,  # Use float16 for GPU acceleration; change to float32 if on CPU.
+print(f"Loading {MODEL_ID}…")
+tokenizer = AutoTokenizer.from_pretrained(MODEL_ID, use_auth_token=HF_TOKEN)
+model     = AutoModelForCausalLM.from_pretrained(
+    MODEL_ID,
+    use_auth_token=HF_TOKEN,
+    torch_dtype=torch.float16,
     device_map="auto",
-    use_auth_token=hf_token
 )
-print("Model loaded successfully.")
 
+def generate_response(user_text: str,
+                      history: list[tuple[str,str]] = None,
+                      max_new_tokens: int = 128,
+                      temperature: float    = 0.7) -> str:
+    """
+    user_text: the latest message from the user
+    history:   optional list of (user,assistant) pairs from prior turns
+    """
+    # 1) build the prompt
+    prompt = SYSTEM_PROMPT + "\n\n"
+    if history:
+        for u, a in history:
+            prompt += f"User: {u}\nAssistant: {a}\n\n"
+    prompt += f"User: {user_text}\nAssistant: "
 
-def generate_response(prompt: str, 
-                      max_new_tokens: int = 150, 
-                      temperature: float = 0.7, 
-                      top_p: float = 0.95) -> str:
-    """
-    Generate a response from the model given an input prompt.
-    """
-    # Tokenize the prompt and move inputs to the model's device.
+    # 2) tokenize
     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
-    
-    # Generate response tokens.
-    output = model.generate(
+    input_len = inputs.input_ids.shape[1]
+
+    # 3) generate
+    outputs = model.generate(
         **inputs,
         max_new_tokens=max_new_tokens,
-        do_sample=True,
         temperature=temperature,
-        top_p=top_p,
-        no_repeat_ngram_size=2  # Prevent repetitive generation.
+        pad_token_id=tokenizer.eos_token_id,
+        eos_token_id=tokenizer.eos_token_id,
     )
-    
-    # Decode and return the generated text.
-    response = tokenizer.decode(output[0], skip_special_tokens=True)
-    return response
 
+    # 4) decode only the new tokens (so we don’t re‑decode the prompt)
+    gen_tokens    = outputs[0][input_len:]
+    gen_text_full = tokenizer.decode(gen_tokens, skip_special_tokens=True)
 
-if __name__ == '__main__':
-    # Test the setup with a simple prompt.
-    sample_prompt = "Hello, who are you?"
-    print("Prompt:", sample_prompt)
-    result = generate_response(sample_prompt)
-    print("Response:", result)
+    # 5) trim off any accidental “User:” or extra “Assistant:” at the end
+    #    (we only want the assistant’s immediate reply)
+    for marker in ("User:", "Assistant:"):
+        if marker in gen_text_full:
+            gen_text_full = gen_text_full.split(marker)[0].strip()
+
+    return gen_text_full
+
+if __name__ == "__main__":
+    # quick sanity check
+    print(generate_response("Hi, how are you?", max_new_tokens=64))

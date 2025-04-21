@@ -1,1 +1,17 @@
-venv/
+# virtualenv
+.venv/
+
+# Python caches
+__pycache__/
+*.py[cod]
+
+# Flask stuff
+instance/
+*.sqlite3
+
+# Editor / OS junk
+*.swp
+.DS_Store
+
+# Env‑vars file
+.env
