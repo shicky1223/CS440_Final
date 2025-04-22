@@ -1,9 +1,9 @@
 # CS440_Final
 CS 440 Final Project
 
-Model used currently : meta-llama/Llama-3.2-1B-Instruct
-We are still experimenting with models from HuggingFace 
-using sqlite for now --> may switch to hosted service later
+- Model used currently: meta-llama/Llama-3.2-1B-Instruct
+- We are still experimenting with models from HuggingFace 
+- using sqlite for now --> may switch to hosted service later
 
 
 ## Setup
