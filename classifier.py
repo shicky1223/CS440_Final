@@ -43,3 +43,26 @@ model = LogisticRegression(max_iter=1000)  # if needed, increase max_iter for co
 model.fit(X_train, y_train)
 
 joblib.dump(model, "anxiety_classifier.pkl")
+
+
+# loads the model for prediction
+def predict_anxiety_level(user_data: dict) -> str:
+
+    # format of the dictionary that should be passed into this function:
+    # this is just an example
+    """
+    user_data = {
+    "Age": 20,
+    "Sleep_Hours": 6.5,
+    "Physical_Activity_Hrs": 2,
+    "Social_Support_Score": 7,
+    "Depression_Score": 4,
+    "Stress_Level": 6,
+    "Self_Esteem_Score": 5,
+    "Life_Satisfaction_Score": 6,
+    "Loneliness_Score": 3
+}
+    """
+    df = pd.DataFrame([user_data])  # wraps in list to make single-row DataFrame
+    prediction = model.predict(df)
+    return prediction[0]
