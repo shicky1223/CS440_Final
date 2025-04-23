@@ -12,7 +12,7 @@ def extract_features(text: str) -> dict:
     if age_match:
         features["Age"] = int(age_match.group(2))
 
-    # Sleep Hours
+    # Sleep
     sleep_match = re.search(r"sleep.*?(\d{1,2})(\.\d+)?\s*(hours|hrs)", text, flags=re.IGNORECASE)
     if sleep_match:
         features["Sleep_Hours"] = float(sleep_match.group(1) + (sleep_match.group(2) or ""))
