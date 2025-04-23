@@ -18,27 +18,27 @@ def get_anxiety_level(score):
     else:
         return "severe"
 
-# new column is created, stores the axiety categories based on the scores
+# new column is created, stores the anxiety categories based on the scores
 df["anxiety_level"] = df["Anxiety_Score"].apply(get_anxiety_level)
 
-# select relevant numeric features from the columns in the dataset
+# selects relevant numeric features from the columns in the dataset
 features = [
     "Age", "Sleep_Hours", "Physical_Activity_Hrs", "Social_Support_Score",
     "Depression_Score", "Stress_Level", "Self_Esteem_Score",
     "Life_Satisfaction_Score", "Loneliness_Score"
 ]
 
-# drop rows with any missing values in the features
+# drops any rows with any missing values in the features
 df = df.dropna(subset=features)
 
-# set the input features (X) and target label (y)
+# sets the input features (X) and target label (y)
 X = df[features]
 y = df["anxiety_level"]
 
-# split into training and testing sets
+# splits into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# initialize and train the logistic regression model
+# initializes and trains the logistic regression model
 model = LogisticRegression(max_iter=1000)  # increase max_iter for convergence
 model.fit(X_train, y_train)
 
