@@ -39,7 +39,7 @@ y = df["anxiety_level"]
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # initializes and trains the logistic regression model
-model = LogisticRegression(max_iter=1000)  # increase max_iter for convergence
+model = LogisticRegression(max_iter=1000)  # if needed, increase max_iter for convergence
 model.fit(X_train, y_train)
 
 joblib.dump(model, "anxiety_classifier.pkl")
