@@ -1,32 +1,26 @@
+# Use an official lightweight Python image
+FROM python:3.12-slim
 
-FROM python:3.12-slim AS builder
+# Don’t buffer stdout/stderr (helpful for logging)
+ENV PYTHONUNBUFFERED=1
+
+# Set working directory inside container
 WORKDIR /app
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-       python3-venv build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
-
-RUN python3 -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-
+# Install dependencies
 COPY requirements.txt ./
 RUN pip install --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+ && pip install -r requirements.txt
 
+# Copy the rest of your app’s source code
+COPY . .
 
-FROM python:3.12-slim
-WORKDIR /app
+# Expose the port your Flask app runs on
+EXPOSE 5000
 
-COPY --from=builder /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+# Launch the app
+# If you’re fine with Flask’s dev server (not recommended for prod):
+# CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]
 
-COPY . /app
-
-
-ENV PYTHONUNBUFFERED=1
-EXPOSE 8000
-CMD ["gunicorn", "app:application", "--bind", "0.0.0.0:8000"]
-
-
+# Or, to run your app.py directly:
+CMD ["python", "app.py"]
