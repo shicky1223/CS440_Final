@@ -29,7 +29,6 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY . /app
 
 # Expose port and set entrypoint
-# Expose port and set entrypoint is a comment, not an instruction
 ENV PYTHONUNBUFFERED=1
 EXPOSE 8000
 CMD ["gunicorn", "app:application", "--bind", "0.0.0.0:8000"]
