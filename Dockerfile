@@ -1,26 +1,25 @@
-# Use an official lightweight Python image
+# ─── Base image ────────────────────────────────────────────────────────────────
 FROM python:3.12-slim
 
-# Don’t buffer stdout/stderr (helpful for logging)
-ENV PYTHONUNBUFFERED=1
-
-# Set working directory inside container
+# ─── Set working directory ────────────────────────────────────────────────────
 WORKDIR /app
 
-# Install dependencies
-COPY requirements.txt ./
-RUN pip install --upgrade pip \
- && pip install -r requirements.txt
+# ─── Install dependencies ─────────────────────────────────────────────────────
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of your app’s source code
+# ─── Copy application code ────────────────────────────────────────────────────
 COPY . .
 
-# Expose the port your Flask app runs on
+# ─── Environment & port ───────────────────────────────────────────────────────
+ENV PYTHONUNBUFFERED=1
+
+# Expose the port your Flask app runs on (default 5000)
 EXPOSE 5000
 
-# Launch the app
-# If you’re fine with Flask’s dev server (not recommended for prod):
-# CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]
-
-# Or, to run your app.py directly:
+# ─── Run the app ───────────────────────────────────────────────────────────────
+# If you have gunicorn in your requirements, you can do:
+#   CMD ["gunicorn", "-b", "0.0.0.0:5000", "app:app"]
+#
+# Otherwise for simple development:
 CMD ["python", "app.py"]
