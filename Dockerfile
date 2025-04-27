@@ -5,8 +5,4 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
-# <-- tell Docker (and EB) which port you’ll be binding inside the container
-ENV PORT=8000
-EXPOSE 8000
-
-CMD ["flask", "run", "--host=0.0.0.0", "--port=8000"]
+CMD ["python", "app.py"]
