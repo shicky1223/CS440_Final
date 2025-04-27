@@ -115,5 +115,5 @@ if __name__ == "__main__":
     # Create tables before the first request
     with application.app_context():
         db.create_all()
-    # Start the Flask development server (debug mode)
-    application.run(debug=True)
+    port = int(os.environ.get("PORT", 8000))
+    application.run(host="0.0.0.0", port=port)  
