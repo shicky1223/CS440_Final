@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM ubuntu:22.04
 
 WORKDIR /app
 COPY requirements.txt /app/
