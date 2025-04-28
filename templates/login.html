@@ -1,12 +1,204 @@
-<!doctype html>
-<title>Login</title>
-<h2>Log In</h2>
-<form method="post">
-  <input name="username" placeholder="Username" required><br>
-  <input name="password" type="password" placeholder="Password" required><br>
-  <button>Log In</button>
-</form>
-<a href="{{ url_for('register') }}">New? Register here</a>
-{% with msgs = get_flashed_messages(with_categories=true) %}
-  {% for cat, m in msgs %}<p class="{{cat}}">{{m}}</p>{% endfor %}
-{% endwith %}
+{# templates/login.html #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Therapeutic AI – Sign In</title>
+  <!-- Your main stylesheet for auth pages -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    /* ─── animated grid ─────────────────────────────────────────────────── */
+    @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap');
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Quicksand', sans-serif;
+    }
+    body {
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    section {
+      position: absolute;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2px;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+    section::before {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(#000,#0f0,#000);
+      animation: animate 5s linear infinite;
+    }
+    @keyframes animate {
+      from { transform: translateY(-100%); }
+      to   { transform: translateY(100%); }
+    }
+    section span {
+      width: calc(6.25vw - 2px);
+      height: calc(6.25vw - 2px);
+      background: #181818;
+      transition: 1.5s;
+      z-index: 2;
+    }
+    section span:hover {
+      background: #0f0;
+      transition: 0s;
+    }
+
+    /* ─── sign-in card ──────────────────────────────────────────────────── */
+    section .signin {
+      position: absolute;
+      background: #222;
+      padding: 40px;
+      border-radius: 4px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.9);
+      z-index: 1000;
+      width: 360px;
+    }
+    .signin .content {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      align-items: center;
+    }
+    .signin h2 {
+      color: #0f0;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    .signin p.subtitle {
+      color: #0f0;
+      font-size: 0.9rem;
+    }
+    .form {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .form input[type="text"],
+    .form input[type="password"] {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: none;
+      border-radius: 4px;
+      background: #333;
+      color: #fff;
+      font-size: 1rem;
+    }
+    .form input::placeholder {
+      color: #aaa;
+      font-style: italic;
+    }
+    .form input[type="submit"] {
+      margin-top: 0.5rem;
+      padding: 0.75rem;
+      background: #0f0;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      font-size: 1.1rem;
+      letter-spacing: 1px;
+    }
+    .form input[type="submit"]:active {
+      opacity: 0.7;
+    }
+
+    /* ─── Sign Up link styled to blend into the card ───────────────────── */
+    .form .links {
+      text-align: center;
+      margin-top: 0.5rem;
+    }
+    .form .links a {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background: #222;      /* same as card */
+      color: #222;           /* hide against card */
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+
+    /* ─── flash toasts ─────────────────────────────────────────────────── */
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #32283a;
+      padding: 0.75rem;
+      border-radius: 4px;
+      margin-top: 1rem;
+      color: #fff;
+    }
+    .toast-icon { color: #0f0; }
+
+    /* ─── authors line ─────────────────────────────────────────────────── */
+    .authors {
+      font-size: 0.85rem;
+      color: #aaa;
+      text-align: center;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+
+<body>
+  <section>
+    {# draw the animated grid behind #}
+    {% for _ in range(100) %}<span></span>{% endfor %}
+
+    <div class="signin">
+      <div class="content">
+        <h2>Therapeutic AI</h2>
+        <p class="subtitle">Your Personal Therapist</p>
+
+        <form method="POST" action="{{ url_for('login') }}" class="form">
+          <input type="text"
+                 name="username"
+                 placeholder="Username"
+                 required>
+          <input type="password"
+                 name="password"
+                 placeholder="Password"
+                 required>
+          <input type="submit" value="Login">
+
+          <div class="links">
+            <a href="{{ url_for('register') }}">Sign Up</a>
+          </div>
+        </form>
+
+        {# show flash messages #}
+        {% with msgs = get_flashed_messages(with_categories=true) %}
+          {% for cat, msg in msgs %}
+            <div class="toast">
+              <i class="fas fa-{{ 'check-circle' if cat=='success' else 'exclamation-circle' }} toast-icon"></i>
+              <div class="toast-content">{{ msg }}</div>
+            </div>
+          {% endfor %}
+        {% endwith %}
+
+        <div class="authors">
+          Authors: Calvin Jade, Apsara Saraswat, Shatkratu Swarnkar, Yuet Yue
+        </div>
+      </div>
+    </div>
+  </section>
+</body>
+</html>

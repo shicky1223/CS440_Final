@@ -56,35 +56,76 @@ def load_user(user_id):
 def chat_ui():
     return render_template("index.html", username=current_user.username)
 
-@app.route("/register", methods=["GET","POST"])
+@app.route('/register', methods=['GET','POST'])
 def register():
-    if current_user.is_authenticated:
-        return redirect(url_for("chat_ui"))
-    if request.method == "POST":
-        u = request.form.get("username", "").strip()
-        p = request.form.get("password", "")
-        if User.query.filter_by(username=u).first():
-            flash("Username taken.", "warning")
+    if request.method == 'POST':
+        # 1) JSON (from your fetch)
+        if request.is_json:
+            data = request.get_json()
+            u = data.get('username','').strip()
+            p = data.get('password','')
+        # 2) classic form‐post (fallback)
         else:
-            pw_hash = bcrypt.generate_password_hash(p).decode()
-            db.session.add(User(username=u, pw_hash=pw_hash))
-            db.session.commit()
-            flash("Registered! Please log in.", "success")
-            return redirect(url_for("login"))
-    return render_template("register.html")
+            u = request.form.get('username','').strip()
+            p = request.form.get('password','')
+
+        # Validate
+        if not u or not p:
+            flash("Username and password required.", "warning")
+            return render_template('register.html'), 400
+
+        if User.query.filter_by(username=u).first():
+            flash("Username already taken.", "danger")
+            return render_template('register.html'), 409
+
+        # Save user
+        pw_hash = bcrypt.generate_password_hash(p).decode()
+        user = User(username=u, pw_hash=pw_hash)
+        db.session.add(user)
+        db.session.commit()
+
+        # For JSON clients
+        if request.is_json:
+            return jsonify(success=True), 201
+
+        # For browser form
+        flash("Registered! Please log in.", "success")
+        return redirect(url_for('login'))
+
+    # GET
+    return render_template('register.html')
+
 
 @app.route("/login", methods=["GET","POST"])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for("chat_ui"))
     if request.method == "POST":
-        u = request.form.get("username", "").strip()
-        p = request.form.get("password", "")
+        # 1) JSON body from fetch()
+        if request.is_json:
+            data = request.get_json()
+            u = data.get("username", "").strip()
+            p = data.get("password", "")
+        # 2) fallback: classic form POST
+        else:
+            u = request.form.get("username", "").strip()
+            p = request.form.get("password", "")
+
         user = User.query.filter_by(username=u).first()
         if user and user.check_password(p):
             login_user(user)
+            # JSON client wants JSON success
+            if request.is_json:
+                return jsonify(success=True)
+            # browser form wants a redirect
             return redirect(url_for("chat_ui"))
+
+        # invalid credentials
+        if request.is_json:
+            return jsonify(error="Invalid credentials"), 401
+
         flash("Invalid credentials.", "danger")
+
     return render_template("login.html")
 
 @app.route("/logout")
@@ -115,5 +156,5 @@ if __name__ == "__main__":
     # Create tables before the first request
     with application.app_context():
         db.create_all()
-    port = int(os.environ.get("PORT", 8000))
-    application.run(host="0.0.0.0", port=port)  
+    # Start the Flask development server (debug mode)
+    application.run(debug=True) 

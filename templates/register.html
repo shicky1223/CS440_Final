@@ -1,12 +1,119 @@
-<!doctype html>
-<title>Register</title>
-<h2>Register</h2>
-<form method="post">
-  <input name="username" placeholder="Username" required><br>
-  <input name="password" type="password" placeholder="Password" required><br>
-  <button>Register</button>
-</form>
-<a href="{{ url_for('login') }}">Already have an account? Log in</a>
-{% with msgs = get_flashed_messages(with_categories=true) %}
-  {% for cat, m in msgs %}<p class="{{cat}}">{{m}}</p>{% endfor %}
-{% endwith %}
+{% extends "base.html" %}
+
+{% block title %}Sign Up{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Center and box the register card */
+  .view.active {
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: var(--bg-primary);
+  }
+  .auth-card {
+    max-width: 400px;
+    width: 100%;
+    padding: 2rem;
+  }
+  .authors {
+    text-align: center;
+    color: var(--text-secondary);
+    margin-top: 1rem;
+    font-size: 0.9rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="registerView" class="view active">
+  <div class="auth-card fade-in">
+    <div class="auth-header">
+      <div class="logo-container">
+        <div class="logo">
+          <i class="fas fa-user-plus"></i>
+        </div>
+      </div>
+      <h2 class="auth-title">Create Account</h2>
+      <p class="auth-subtitle">Fill in your details to get started</p>
+    </div>
+    <form id="registerForm" class="auth-form">
+      <div class="form-group">
+        <label for="registerUsername">Username</label>
+        <div class="input-wrapper">
+          <i class="fas fa-user input-icon"></i>
+          <input type="text" id="registerUsername" name="username" placeholder="Choose a username" required class="input" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="registerPassword">Password</label>
+        <div class="input-wrapper">
+          <i class="fas fa-lock input-icon"></i>
+          <input type="password" id="registerPassword" name="password" placeholder="Create a password" required class="input" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="confirmPassword">Confirm Password</label>
+        <div class="input-wrapper">
+          <i class="fas fa-lock input-icon"></i>
+          <input type="password" id="confirmPassword" name="confirm_password" placeholder="Confirm your password" required class="input" />
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
+    </form>
+    <div class="auth-footer">
+      <p class="text-secondary">Already have an account? <a href="{{ url_for('login') }}" class="auth-link">Log In</a></p>
+    </div>
+
+    <!-- Authors Section -->
+    <div class="authors">
+      <p>Authors: Calvin Jade, Apsara Saraswat, Shatkratu Swarnkar, Yuet Yue</p>
+    </div>
+
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+      {% for cat, m in msgs %}
+        <div class="toast toast-{{ cat }} mt-4 fade-in">
+          <i class="fas fa-exclamation-circle toast-icon"></i>
+          <div class="toast-content"><p class="toast-message">{{ m }}</p></div>
+        </div>
+      {% endfor %}
+    {% endwith %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.getElementById('registerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const username = document.getElementById('registerUsername').value.trim();
+    const password = document.getElementById('registerPassword').value;
+    const confirm = document.getElementById('confirmPassword').value;
+    if (!username || !password || !confirm) {
+      showToast('Please fill in all fields', 'warning');
+      return;
+    }
+    if (password !== confirm) {
+      showToast('Passwords do not match', 'error');
+      return;
+    }
+    try {
+      const res = await fetch('{{ url_for("register") }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        window.location.href = '{{ url_for("login") }}';
+      } else {
+        showToast(data.error || 'Registration failed', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Server error', 'error');
+    }
+  });
+</script>
+{% endblock %}

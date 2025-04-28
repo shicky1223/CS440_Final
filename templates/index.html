@@ -2,130 +2,183 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chat with AI</title>
   <style>
-    /* Basic styles for the chat interface */
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f8f8f8;
+    :root {
+      --bg: #f0f2f5;
+      --chat-bg: #ffffff;
+      --user-bg: #d1e7dd;
+      --ai-bg: #e2e3e5;
+      --accent: #0d6efd;
+      --text-primary: #333;
+      --text-secondary: #555;
+      --radius: 12px;
+      --spacing: 1rem;
+      --transition: 0.3s;
+    }
+    * {
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: var(--spacing);
+    }
+    .header {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing);
+    }
+    .header a {
+      color: var(--accent);
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+    .header a:hover {
+      color: darken(var(--accent), 10%);
     }
     .chat-container {
+      width: 100%;
       max-width: 600px;
-      margin: 50px auto;
-      padding: 20px;
-      background-color: #ffffff;
-      border-radius: 5px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      background: var(--chat-bg);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      padding: var(--spacing);
       height: 70vh;
       overflow-y: auto;
     }
     .message {
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 5px;
+      max-width: 80%;
+      margin-bottom: var(--spacing);
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius);
+      line-height: 1.4;
+      position: relative;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: fadeIn 0.4s forwards;
     }
     .user-message {
-      background-color: #cce5ff;
+      background: var(--user-bg);
+      margin-left: auto;
       text-align: right;
     }
     .ai-message {
-      background-color: #e2e3e5;
+      background: var(--ai-bg);
+      margin-right: auto;
       text-align: left;
     }
     .input-area {
-      display: flex;
+      width: 100%;
       max-width: 600px;
-      margin: 0 auto;
-      padding: 10px;
+      display: flex;
+      margin-top: var(--spacing);
     }
-    .input-area input[type="text"] {
+    .input-area input {
       flex: 1;
-      padding: 10px;
-      font-size: 16px;
+      padding: 0.75rem 1rem;
       border: 1px solid #ccc;
-      border-radius: 5px;
+      border-radius: var(--radius) 0 0 var(--radius);
+      font-size: 1rem;
+      transition: border-color var(--transition);
+    }
+    .input-area input:focus {
+      outline: none;
+      border-color: var(--accent);
     }
     .input-area button {
-      padding: 10px 20px;
-      margin-left: 10px;
-      font-size: 16px;
-      background-color: #007bff;
+      padding: 0 1.5rem;
+      background: var(--accent);
       color: #fff;
       border: none;
-      border-radius: 5px;
+      border-radius: 0 var(--radius) var(--radius) 0;
       cursor: pointer;
+      font-size: 1rem;
+      transition: background var(--transition);
+    }
+    .input-area button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+    .input-area button:hover:not(:disabled) {
+      background: #0056b3;
+    }
+    @keyframes fadeIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (max-width: 640px) {
+      .chat-container, .input-area {
+        padding: var(--spacing) 0;
+      }
+      .input-area input, .input-area button {
+        font-size: 0.9rem;
+      }
     }
   </style>
 </head>
 <body>
-  <p>Logged in as {{ username }} | <a href="{{ url_for('logout') }}">Logout</a></p>
-<!-- rest of your chat UI… -->
-
-  <!-- Chat container to display conversation -->
-  <div class="chat-container" id="chat-container">
-    <!-- Chat messages will be inserted here -->
+  <div class="header">
+    <p>Logged in as <strong>{{ username }}</strong></p>
+    <a href="{{ url_for('logout') }}">Logout</a>
   </div>
-
-  <!-- Input area for sending messages -->
+  <div class="chat-container" id="chat-container"></div>
   <div class="input-area">
-    <input type="text" id="user-input" placeholder="Type your message here..." autocomplete="off">
+    <input type="text" id="user-input" placeholder="Type your message…" autocomplete="off" />
     <button id="send-button">Send</button>
   </div>
-
   <script>
-    // Get references to DOM elements
     const chatContainer = document.getElementById('chat-container');
     const userInput = document.getElementById('user-input');
     const sendButton = document.getElementById('send-button');
 
-    // Function to add messages to the chat container
-    function addMessage(message, sender) {
-      const messageDiv = document.createElement('div');
-      messageDiv.classList.add('message', sender === 'user' ? 'user-message' : 'ai-message');
-      messageDiv.textContent = message;
-      chatContainer.appendChild(messageDiv);
-      // Scroll to the bottom whenever a new message is added
+    function addMessage(text, sender) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      div.classList.add('message', sender === 'user' ? 'user-message' : 'ai-message');
+      chatContainer.append(div);
       chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
-    // Function to send the user's message to the /chat endpoint
     async function sendMessage() {
-      const message = userInput.value.trim();
-      if (!message) return; // Do nothing if input is empty
-
-      // Add user's message to the chat display
-      addMessage(message, 'user');
-      userInput.value = ''; // Clear input field
-
+      const msg = userInput.value.trim();
+      if (!msg) return;
+      addMessage(msg, 'user');
+      userInput.value = '';
+      sendButton.disabled = true;
       try {
-        const response = await fetch('/chat', {
+        const res = await fetch('{{ url_for('chat') }}', { // ensure Jinja quotes
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ message: message })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: msg })
         });
-        
-        const data = await response.json();
-        // Display the AI's reply
-        addMessage(data.reply, 'ai');
-      } catch (error) {
-        console.error('Error:', error);
-        addMessage("Error: Could not connect to the server.", 'ai');
+        const { reply } = await res.json();
+        addMessage(reply, 'ai');
+      } catch (e) {
+        console.error(e);
+        addMessage('Server error. Please try again.', 'ai');
+      } finally {
+        sendButton.disabled = false;
+        userInput.focus();
       }
     }
 
-    // Send message on button click
     sendButton.addEventListener('click', sendMessage);
-
-    // Also allow sending the message when pressing the Enter key
-    userInput.addEventListener('keyup', function(event) {
-      if (event.key === 'Enter') {
-        sendMessage();
-      }
+    userInput.addEventListener('keyup', e => {
+      if (e.key === 'Enter') sendMessage();
     });
+
+    userInput.focus();
   </script>
 </body>
 </html>

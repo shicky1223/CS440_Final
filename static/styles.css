@@ -1,89 +1,153 @@
-/* Basic reset and body styling */
+/* static/css/style.css */
+
+:root {
+  --bg-primary: #121212;
+  --bg-secondary: #1e1e1e;
+  --bg-tertiary: #2d2d2d;
+  --accent-primary: #00c6b4;
+  --accent-secondary: #ff6b6b;
+  --text-primary: #fff;
+  --text-secondary: #b3b3b3;
+  --radius: 12px;
+  --spacing: 1rem;
+  --transition: 0.3s;
+  --font-family: 'Inter', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
 body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #f5f5f5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-  }
-  
-  /* Chat container styling */
-  .chat-container {
-    width: 90%;
-    max-width: 600px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  
-  /* Header style */
-  .chat-header {
-    background-color: #007acc;
-    color: #fff;
-    padding: 16px;
-    text-align: center;
-  }
-  
-  /* Chat box where messages appear */
-  .chat-box {
-    flex: 1;
-    padding: 16px;
-    overflow-y: auto;
-    background-color: #fafafa;
-  }
-  
-  /* Chat form (input area) */
-  .chat-form {
-    display: flex;
-    border-top: 1px solid #ddd;
-  }
-  
-  .chat-form input {
-    flex: 1;
-    padding: 12px;
-    border: none;
-    font-size: 16px;
-  }
-  
-  .chat-form button {
-    padding: 12px 20px;
-    border: none;
-    background-color: #007acc;
-    color: #fff;
-    cursor: pointer;
-  }
-  
-  .chat-form button:hover {
-    background-color: #005fa3;
-  }
-  
-  /* Message bubbles styling */
-  .message {
-    margin-bottom: 12px;
-    display: flex;
-  }
-  
-  .message.user .bubble {
-    margin-left: auto;
-    background-color: #d1e7dd;
-    color: #0f5132;
-  }
-  
-  .message.ai .bubble {
-    background-color: #e2e3e5;
-    color: #41464b;
-  }
-  
-  .bubble {
-    max-width: 80%;
-    padding: 10px 16px;
-    border-radius: 20px;
-    font-size: 15px;
-    line-height: 1.4;
-  }
-  
+  font-family: var(--font-family);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+/* AUTH PAGES (login/register) */
+.view.active {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing);
+}
+
+.auth-card {
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+}
+
+.logo-container {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.logo {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo i {
+  color: var(--bg-primary);
+  font-size: 1.8rem;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.auth-title {
+  font-size: 1.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.auth-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.form-group { margin-bottom: 1rem; }
+
+.input-wrapper {
+  position: relative;
+}
+
+.input-wrapper .input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--bg-tertiary);
+  border: 1px solid #333;
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  padding-left: 2.5rem;
+  transition: border var(--transition);
+}
+
+.input-wrapper .input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.input-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--accent-primary);
+  border: none;
+  border-radius: var(--radius);
+  color: var(--bg-primary);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.btn:hover {
+  background: var(--accent-secondary);
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.auth-footer .auth-link {
+  color: var(--accent-primary);
+  text-decoration: none;
+}
+
+.authors {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin-top: 1rem;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #32283a;
+  padding: 0.75rem;
+  border-radius: var(--radius);
+  margin-top: 1rem;
+}
+.toast .toast-icon { color: var(--accent-secondary); }
+.toast .toast-message { color: var(--text-primary); }
+
+/* CHAT PAGE styles can live here too... */
