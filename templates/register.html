@@ -1,119 +1,144 @@
-{% extends "base.html" %}
-
-{% block title %}Sign Up{% endblock %}
-
-{% block extra_css %}
-<style>
-  /* Center and box the register card */
-  .view.active {
-    display: flex !important;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    background: var(--bg-primary);
-  }
-  .auth-card {
-    max-width: 400px;
-    width: 100%;
-    padding: 2rem;
-  }
-  .authors {
-    text-align: center;
-    color: var(--text-secondary);
-    margin-top: 1rem;
-    font-size: 0.9rem;
-  }
-</style>
-{% endblock %}
-
-{% block content %}
-<div id="registerView" class="view active">
-  <div class="auth-card fade-in">
-    <div class="auth-header">
-      <div class="logo-container">
-        <div class="logo">
-          <i class="fas fa-user-plus"></i>
-        </div>
-      </div>
-      <h2 class="auth-title">Create Account</h2>
-      <p class="auth-subtitle">Fill in your details to get started</p>
-    </div>
-    <form id="registerForm" class="auth-form">
-      <div class="form-group">
-        <label for="registerUsername">Username</label>
-        <div class="input-wrapper">
-          <i class="fas fa-user input-icon"></i>
-          <input type="text" id="registerUsername" name="username" placeholder="Choose a username" required class="input" />
-        </div>
-      </div>
-      <div class="form-group">
-        <label for="registerPassword">Password</label>
-        <div class="input-wrapper">
-          <i class="fas fa-lock input-icon"></i>
-          <input type="password" id="registerPassword" name="password" placeholder="Create a password" required class="input" />
-        </div>
-      </div>
-      <div class="form-group">
-        <label for="confirmPassword">Confirm Password</label>
-        <div class="input-wrapper">
-          <i class="fas fa-lock input-icon"></i>
-          <input type="password" id="confirmPassword" name="confirm_password" placeholder="Confirm your password" required class="input" />
-        </div>
-      </div>
-      <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
-    </form>
-    <div class="auth-footer">
-      <p class="text-secondary">Already have an account? <a href="{{ url_for('login') }}" class="auth-link">Log In</a></p>
-    </div>
-
-    <!-- Authors Section -->
-    <div class="authors">
-      <p>Authors: Calvin Jade, Apsara Saraswat, Shatkratu Swarnkar, Yuet Yue</p>
-    </div>
-
-    {% with msgs = get_flashed_messages(with_categories=true) %}
-      {% for cat, m in msgs %}
-        <div class="toast toast-{{ cat }} mt-4 fade-in">
-          <i class="fas fa-exclamation-circle toast-icon"></i>
-          <div class="toast-content"><p class="toast-message">{{ m }}</p></div>
-        </div>
-      {% endfor %}
-    {% endwith %}
-  </div>
-</div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-  document.getElementById('registerForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const username = document.getElementById('registerUsername').value.trim();
-    const password = document.getElementById('registerPassword').value;
-    const confirm = document.getElementById('confirmPassword').value;
-    if (!username || !password || !confirm) {
-      showToast('Please fill in all fields', 'warning');
-      return;
+{# templates/register.html #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Therapeutic AI – Sign Up</title>
+  <!-- main styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    /* animated-grid CSS (same as login) */
+    @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap');
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Quicksand',sans-serif; }
+    body { display:flex; justify-content:center; align-items:center; min-height:100vh; background:#000; }
+    section {
+      position:absolute; width:100vw; height:100vh;
+      display:flex; justify-content:center; align-items:center;
+      gap:2px; flex-wrap:wrap; overflow:hidden;
     }
-    if (password !== confirm) {
-      showToast('Passwords do not match', 'error');
-      return;
+    section::before {
+      content:''; position:absolute; width:100%; height:100%;
+      background:linear-gradient(#000,#0f0,#000);
+      animation:animate 5s linear infinite;
     }
-    try {
-      const res = await fetch('{{ url_for("register") }}', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        window.location.href = '{{ url_for("login") }}';
-      } else {
-        showToast(data.error || 'Registration failed', 'error');
-      }
-    } catch (err) {
-      console.error(err);
-      showToast('Server error', 'error');
+    @keyframes animate {
+      0%   { transform:translateY(-100%); }
+      100% { transform:translateY(100%); }
     }
-  });
-</script>
-{% endblock %}
+    section span {
+      position:relative; display:block;
+      width:calc(6.25vw - 2px); height:calc(6.25vw - 2px);
+      background:#181818; z-index:2; transition:1.5s;
+    }
+    section span:hover { background:#0f0; transition:0s; }
+
+    .signin {
+      position:absolute; width:400px;
+      background:#222; z-index:1000;
+      display:flex; justify-content:center; align-items:center;
+      padding:40px; border-radius:4px;
+      box-shadow:0 15px 35px rgba(0,0,0,0.9);
+    }
+    .signin .content {
+      width:100%; display:flex;
+      flex-direction:column; align-items:center;
+      gap:30px;
+    }
+    .signin h2 {
+      font-size:2em; color:#0f0; text-transform:uppercase;
+    }
+    .signin p.tagline {
+      color:#0f0; font-size:.9em; margin-top:-10px;
+    }
+    .form {
+      width:100%; display:flex;
+      flex-direction:column; gap:20px;
+    }
+    .inputBox {
+      position:relative; width:100%;
+    }
+    .inputBox input {
+      width:100%; background:#333; border:none;
+      outline:none; padding:20px 10px 7px; border-radius:4px;
+      color:#fff; font-size:1em;
+    }
+    .inputBox i {
+      position:absolute; left:10px; top:50%;
+      transform:translateY(-50%);
+      color:#aaa; font-style:normal; transition:.5s;
+      pointer-events:none;
+    }
+    .inputBox input:focus ~ i,
+    .inputBox input:valid ~ i {
+      transform:translateY(-7.5px); font-size:.8em; color:#fff;
+    }
+    .links { width:100%; display:flex; justify-content:flex-end; }
+    .links a { display:none; } /* hide Forgot Password link */
+    .links a.signup { color:#0f0; font-weight:600; display:inline; }
+    .inputBox input[type=submit] {
+      background:#0f0; color:#000; font-weight:600;
+      font-size:1.2em; cursor:pointer; letter-spacing:.05em;
+      padding:12px; border:none; border-radius:4px;
+    }
+    .toast {
+      display:flex; align-items:center; gap:.5rem;
+      background:#32283a; padding:.75rem; border-radius:4px;
+      margin-top:1rem; width:100%;
+    }
+    .toast .toast-icon { color:#0f0; margin-right:.5rem; }
+    .authors {
+      color:#aaa; font-size:.85em; text-align:center;
+      margin-top:1rem;
+    }
+    @media (max-width:600px) {
+      section span { width:calc(20vw - 2px); height:calc(20vw - 2px); }
+    }
+  </style>
+</head>
+<body>
+  <section>
+    {# generate 100 spans for the grid background #}
+    {% for _ in range(100) %}<span></span>{% endfor %}
+
+    <div class="signin">
+      <div class="content">
+        <h2>Therapeutic AI</h2>
+        <p class="tagline">Create your account</p>
+
+        <form method="POST" action="{{ url_for('register') }}" class="form">
+          <div class="inputBox">
+            <input type="text" name="username" required><i>Username</i>
+          </div>
+          <div class="inputBox">
+            <input type="password" name="password" required><i>Password</i>
+          </div>
+          <div class="inputBox">
+            <input type="password" name="confirm_password" required><i>Confirm Password</i>
+          </div>
+          <div class="links">
+            <a href="{{ url_for('login') }}" class="signup">Already have an account? Sign In</a>
+          </div>
+          <div class="inputBox">
+            <input type="submit" value="Sign Up">
+          </div>
+        </form>
+
+        {# flash messages #}
+        {% with msgs = get_flashed_messages(with_categories=true) %}
+          {% for category, msg in msgs %}
+            <div class="toast toast-{{ category }}">
+              <i class="fas fa-{{ 'check-circle' if category=='success' else 'exclamation-circle' }} toast-icon"></i>
+              <div class="toast-content">{{ msg }}</div>
+            </div>
+          {% endfor %}
+        {% endwith %}
+
+        <div class="authors">
+          Authors: Calvin Jade, Apsara Saraswat, Shatkratu Swarnkar, Yuet Yue
+        </div>
+      </div>
+    </div>
+  </section>
+</body>
+</html>
