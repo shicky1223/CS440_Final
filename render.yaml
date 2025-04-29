@@ -1,23 +1,14 @@
-# render.yaml
-
 services:
   - type: web
-    name: therapeutic-ai
-    env: python
-    plan: free              # or “starter”, “standard”, etc.
-    branch: main            # change if your default branch is different
-    region: oregon          # change if you want a different region
-    buildCommand: |
-      pip install --upgrade pip
-      pip install -r requirements.txt
-    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
-
+    name: my-flask-chat
+    repo: https://github.com/you/your-repo
+    branch: main
+    buildCommand: make install
+    startCommand: make gunicorn
     envVars:
-      - key: HF_TOKEN
-        fromSecret: HF_TOKEN
-      - key: FLASK_ENV
-        value: development
       - key: SECRET_KEY
-        fromSecret: SECRET_KEY
+        value: your-secret
       - key: DATABASE_URL
-        fromSecret: DATABASE_URL
+        fromDatabase:
+          name: your-db
+          property: CONNECTION_STRING

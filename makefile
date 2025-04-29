@@ -20,7 +20,8 @@ run:
 
 gunicorn:
 	# WSGI entrypoint is application in app.py
-	gunicorn app:application --bind 0.0.0.0:8000
+	gunicorn app:application --bind 0.0.0.0:$(PORT) \
+	--workers 4 --threads 2 --preload
 
 clean:
 	find . -type f -name '*.pyc' -delete
