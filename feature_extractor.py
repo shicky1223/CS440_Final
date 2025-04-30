@@ -64,7 +64,7 @@ def extract_features_spacy(text):
     # using keywords to extract depression score (adjectives)
     depression_keywords = {"sad", "hopeless", "worthless", "numb", "empty", "unmotivated"}
     depression_hits = sum(1 for token in doc if token.lemma_.lower() in depression_keywords)
-    depression_score = min(3, depression_hits)  # simplistic scale 0–3
+    depression_score = min(3, depression_hits)  # assigns a numerical value for how lonely the user feels (0-3)
 
     # using keywords to extract self-esteem score (pronouns and adjectives)
     if "i hate myself" in text.lower() or "i'm worthless" in text.lower():
