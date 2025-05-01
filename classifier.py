@@ -1,22 +1,26 @@
-# classifier.py
-
-import os, pandas as pd, joblib
+import os
+import pandas as pd
+import joblib
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 
 MODEL_PATH = "anxiety_classifier.pkl"
-CSV_PATH   = "anxiety_depression_data.csv"
+CSV_PATH = "anxiety_depression_data.csv"
 FEATURE_ORDER = [
     "Age", "Sleep_Hours", "Physical_Activity_Hrs",
     "Social_Support_Score", "Depression_Score",
     "Stress_Level", "Self_Esteem_Score",
     "Life_Satisfaction_Score", "Loneliness_Score"
 ]
+
 def get_anxiety_level(score):
     score = int(score)
-    if score <= 4:  return "minimal"
-    if score <= 9:  return "mild"
-    if score <= 14: return "moderate"
+    if score <= 4:  
+        return "minimal"
+    if score <= 9:  
+        return "mild"
+    if score <= 14: 
+        return "moderate"
     return "severe"
 
 def train_and_dump():
@@ -24,17 +28,17 @@ def train_and_dump():
     df["anxiety_level"] = df["Anxiety_Score"].apply(get_anxiety_level)
 
     features = [
-      "Age", "Sleep_Hours", "Physical_Activity_Hrs",
-      "Social_Support_Score", "Depression_Score",
-      "Stress_Level", "Self_Esteem_Score",
-      "Life_Satisfaction_Score", "Loneliness_Score"
+        "Age", "Sleep_Hours", "Physical_Activity_Hrs",
+        "Social_Support_Score", "Depression_Score",
+        "Stress_Level", "Self_Esteem_Score",
+        "Life_Satisfaction_Score", "Loneliness_Score"
     ]
     df = df.dropna(subset=features + ["anxiety_level"])
 
     X = df[features]
     y = df["anxiety_level"]
     X_train, X_test, y_train, y_test = train_test_split(
-      X, y, test_size=0.2, random_state=42
+        X, y, test_size=0.2, random_state=42
     )
 
     model = LogisticRegression(max_iter=1000)
@@ -42,7 +46,7 @@ def train_and_dump():
     joblib.dump(model, MODEL_PATH)
     return model
 
-# load or train once at import time
+# Load or train once at import time
 if os.path.exists(MODEL_PATH):
     _model = joblib.load(MODEL_PATH)
 else:
@@ -50,7 +54,9 @@ else:
 
 import pandas as pd
 
-def classify_user(features: dict) -> str:
+def classify_user(features_tuple: tuple) -> str:
+    features, confidence_scores = features_tuple  # Unpack the tuple here
+
     # Build a clean row with exactly the nine model features,
     # coercing to float (and defaulting invalid/missing to 0.0)
     row = {}
@@ -69,9 +75,7 @@ def classify_user(features: dict) -> str:
 
     return _model.predict(df_user)[0]
 
-
-
-# allow standalone training
+# Allow standalone training
 if __name__ == "__main__":
     train_and_dump()
     print("Model trained and saved to", MODEL_PATH)
