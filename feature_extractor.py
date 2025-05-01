@@ -1,104 +1,128 @@
 import spacy
+import re
+import contractions
+from collections import defaultdict
 
+# Load SpaCy model
 nlp = spacy.load("en_core_web_sm")
 
+# Function to map text-based features to numeric scores
+def map_level(value):
+    """Maps qualitative levels to numeric values."""
+    if value == "Low": return 1
+    if value == "Medium": return 2
+    if value == "High": return 3
+    return 0  # fallback
+
 def extract_features_spacy(text):
+    # Expand contractions
+    text = contractions.fix(text)
+
+    # Initialize variables
+    features = defaultdict(lambda: None)
+    confidence_scores = defaultdict(lambda: 0.0)
+
+    # Create a SpaCy document
     doc = nlp(text)
 
-    age = None
-    sleep_hours = None
-    exercise_freq = None
-    stress_level = None
-    social_support = None
-    depression_score = None
-    self_esteem_score = None
-    life_satisfaction_score = None
-    loneliness_score = None
-
-    # using name entity recognition to extract age
+    # --- Age Extraction ---
     for ent in doc.ents:
         if ent.label_ in {"DATE", "AGE", "CARDINAL"}:
             if any(word in ent.text.lower() for word in ["year", "old", "age"]):
                 try:
                     possible_age = int([int(s) for s in ent.text.split() if s.isdigit()][0])
                     if 5 < possible_age < 100:
-                        age = possible_age
+                        features["Age"] = possible_age
+                        confidence_scores["Age"] = 0.9  # High confidence
                 except:
                     pass
 
-    # using dependency parsing to extract sleep hours
-    for token in doc:
-        if token.lemma_ in ["sleep", "rest"]:
-            for child in token.children:
-                if child.like_num:
-                    try:
-                        sleep_hours = float(child.text)
-                    except:
-                        pass
+    # --- Sleep Extraction ---
+    sleep_patterns = [r"(sleep|get)\s+(about\s+)?(\d{1,2})\s*(hours|hrs)?", 
+                      r"(\d{1,2})\s*(hours|hrs)\s*(of)?\s*(sleep|rest)"]
+    for pattern in sleep_patterns:
+        sleep_match = re.search(pattern, text.lower())
+        if sleep_match:
+            features["Sleep_Hours"] = float(sleep_match.group(3))
+            confidence_scores["Sleep_Hours"] = 0.8  # Medium confidence
 
-    # using dependency parsing to extract stress level (adjectives)
-    stress_words = {"overwhelmed", "anxious", "stressed", "burned out", "tense", "worried"}
-    for token in doc:
-        if token.pos_ == "ADJ" and token.lemma_.lower() in stress_words:
-            stress_level = "High"
-            break
+    # --- Exercise Extraction ---
+    exercise_patterns = [r"(\d+)\s*(hours|hrs)\s*(of)?\s*(exercise|gym|workout)", 
+                         r"(jog|run|gym|exercise|workout|hike)"]
+    exercise_matches = []
+    for pattern in exercise_patterns:
+        exercise_match = re.search(pattern, text.lower())
+        if exercise_match:
+            exercise_matches.append(exercise_match)
+    
+    if exercise_matches:
+        features["Physical_Activity_Hrs"] = sum([int(match.group(1)) for match in exercise_matches])
+        confidence_scores["Physical_Activity_Hrs"] = 0.8  # Medium confidence
 
-    # using dependency parsing to extract exercise frequency (verbs and modifiers)
-    for sent in doc.sents:
-        if any(word in sent.text.lower() for word in ["jog", "run", "gym", "exercise", "workout"]):
-            if any(freq in sent.text.lower() for freq in ["daily", "every", "often", "regularly", "weekly"]):
-                exercise_freq = "Frequent"
-            else:
-                exercise_freq = "Rare"
+    # --- Stress Extraction ---
+    stress_keywords = {"overwhelmed", "anxious", "stressed", "burned out", "tense", "worried"}
+    stress_hits = [token for token in doc if token.pos_ == "ADJ" and token.lemma_.lower() in stress_keywords]
+    if stress_hits:
+        features["Stress_Level"] = "High"
+        confidence_scores["Stress_Level"] = 0.9  # High confidence
 
-    # using keywords to extract social support
+    # --- Social Support Extraction ---
     social_keywords = {"friends", "family", "support", "talk to", "trusted", "close to"}
-    if any(word in text.lower() for word in social_keywords):
-        if any(phrase in text.lower() for phrase in ["a lot of support", "always there", "can count on"]):
-            social_support = "High"
-        elif any(phrase in text.lower() for phrase in ["some support", "sometimes help", "occasionally talk"]):
-            social_support = "Medium"
-        else:
-            social_support = "Low"
+    social_phrases = {
+        "High": ["a lot of support", "always there", "can count on"],
+        "Medium": ["some support", "sometimes help", "occasionally talk"],
+        "Low": ["no one", "isolated", "alone"]
+    }
+    for phrase, levels in social_phrases.items():
+        if any(phrase in text.lower() for phrase in levels):
+            features["Social_Support_Score"] = phrase
+            confidence_scores["Social_Support_Score"] = 0.8  # Medium confidence
 
-    # using keywords to extract depression score (adjectives)
+    # --- Depression Extraction ---
     depression_keywords = {"sad", "hopeless", "worthless", "numb", "empty", "unmotivated"}
     depression_hits = sum(1 for token in doc if token.lemma_.lower() in depression_keywords)
-    depression_score = min(3, depression_hits)  # assigns a numerical value for how lonely the user feels (0-3)
+    features["Depression_Score"] = min(3, depression_hits)  # Numerical scale
+    confidence_scores["Depression_Score"] = 0.8  # Medium confidence
 
-    # using keywords to extract self-esteem score (pronouns and adjectives)
-    if "i hate myself" in text.lower() or "i'm worthless" in text.lower():
-        self_esteem_score = "Low"
-    elif "i like myself" in text.lower() or "i'm proud" in text.lower():
-        self_esteem_score = "High"
-    else:
-        self_esteem_score = "Medium"
-
-    # using keywords to extract life satisfaction score (tone)
-    satisfaction_phrases = {
-        "high": ["i love my life", "very satisfied", "things are great"],
-        "medium": ["life is okay", "can't complain", "so-so"],
-        "low": ["i hate my life", "not satisfied", "everything is bad"]
-    }
-    for k, phrases in satisfaction_phrases.items():
+    # --- Self-Esteem Extraction ---
+    self_esteem_phrases = {"Low": ["i hate myself", "i'm worthless"],
+                           "High": ["i like myself", "i'm proud"],
+                           "Medium": []}
+    for level, phrases in self_esteem_phrases.items():
         if any(phrase in text.lower() for phrase in phrases):
-            life_satisfaction_score = k.capitalize()
+            features["Self_Esteem_Score"] = level
+            confidence_scores["Self_Esteem_Score"] = 0.7  # Medium confidence
 
-    # using keywords to extract loneliness score (social isolation terms)
+    # --- Life Satisfaction Extraction ---
+    satisfaction_phrases = {
+        "High": ["i love my life", "very satisfied", "things are great"],
+        "Medium": ["life is okay", "can't complain", "so-so"],
+        "Low": ["i hate my life", "not satisfied", "everything is bad"]
+    }
+    for level, phrases in satisfaction_phrases.items():
+        if any(phrase in text.lower() for phrase in phrases):
+            features["Life_Satisfaction_Score"] = level
+            confidence_scores["Life_Satisfaction_Score"] = 0.8  # Medium confidence
+
+    # --- Loneliness Extraction ---
     loneliness_terms = {"alone", "isolated", "nobody", "no one", "lonely"}
     loneliness_hits = sum(1 for token in doc if token.lemma_.lower() in loneliness_terms)
-    loneliness_score = min(3, loneliness_hits)  # assigns a numerical value for how lonely the user feels (0-3)
+    features["Loneliness_Score"] = min(3, loneliness_hits)  # Numerical scale
+    confidence_scores["Loneliness_Score"] = 0.7  # Medium confidence
 
-    features = {
-        "Age": age,
-        "Sleep_Hours": sleep_hours,
-        "Exercise": exercise_freq,
-        "Stress_Level": stress_level,
-        "Social_Support_Score": social_support,
-        "Depression_Score": depression_score,
-        "Self_Esteem_Score": self_esteem_score,
-        "Life_Satisfaction_Score": life_satisfaction_score,
-        "Loneliness_Score": loneliness_score
-    }
+    # Normalize values where necessary
+    if features["Age"]:
+        features["Age"] = min(features["Age"], 100)  # Cap age to 100
+    if features["Sleep_Hours"]:
+        features["Sleep_Hours"] = min(features["Sleep_Hours"], 24)  # Max 24 hours for sleep
+    if features["Physical_Activity_Hrs"]:
+        features["Physical_Activity_Hrs"] = min(features["Physical_Activity_Hrs"], 24)  # Max 24 hours of activity
 
-    return features
+    # Convert qualitative scores to numerical scores for easier processing later
+    features["Stress_Level"] = map_level(features["Stress_Level"])
+    features["Social_Support_Score"] = map_level(features["Social_Support_Score"])
+    features["Self_Esteem_Score"] = map_level(features["Self_Esteem_Score"])
+    features["Life_Satisfaction_Score"] = map_level(features["Life_Satisfaction_Score"])
+
+    return dict(features), dict(confidence_scores)
+
