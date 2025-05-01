@@ -10,7 +10,7 @@ from flask_login import (
 )
 from flask_bcrypt import Bcrypt
 from model import generate_response
-from feature_extractor import extract_features
+from feature_extractor import extract_features_spacy
 from classifier import classify_user
 from dotenv import load_dotenv
 import os
@@ -139,17 +139,20 @@ def logout():
 def chat():
     data = request.get_json() or {}
     msg  = data.get("message", "").strip()
+
     if not msg:
         reply = "Say something when you're ready!"
     else:
-        # 1) LLM reply
         ai_reply = generate_response(msg, max_new_tokens=128, temperature=0.7)
-        # 2) ML prediction
-        feats = extract_features(msg)
-        anxiety = classify_user(feats)
-        # 3) combine
-        reply = f"{ai_reply}\n\n*Predicted anxiety level:* {anxiety}"
+        try:
+            feats   = extract_features_spacy(msg)
+            anxiety = classify_user(feats)
+            reply   = f"{ai_reply}\n\n*Predicted anxiety level:* {anxiety}"
+        except Exception:
+            app.logger.exception("classification failed")
+            reply = ai_reply  # omit the anxiety bit if it errors
     return jsonify({"reply": reply})
+
 
 # ─── Bootstrap & Run ─────────────────────────────────────────────────────────────
 if __name__ == "__main__":
@@ -157,4 +160,4 @@ if __name__ == "__main__":
     with application.app_context():
         db.create_all()
     # Start the Flask development server (debug mode)
-    app.run() 
+    app.run(debug=True) 

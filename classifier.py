@@ -48,10 +48,27 @@ if os.path.exists(MODEL_PATH):
 else:
     _model = train_and_dump()
 
+import pandas as pd
+
 def classify_user(features: dict) -> str:
-    row = {col: features.get(col, 0) for col in FEATURE_ORDER}
+    # Build a clean row with exactly the nine model features,
+    # coercing to float (and defaulting invalid/missing to 0.0)
+    row = {}
+    for col in FEATURE_ORDER:
+        val = features.get(col, 0)
+        try:
+            row[col] = float(val)
+        except Exception:
+            row[col] = 0.0
+
     df_user = pd.DataFrame([row], columns=FEATURE_ORDER)
+
+    # debug log: drop this once it works
+    print("-- df_user dtypes --\n", df_user.dtypes)
+    print("-- df_user head --\n", df_user)
+
     return _model.predict(df_user)[0]
+
 
 
 # allow standalone training
