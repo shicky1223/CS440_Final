@@ -12,6 +12,7 @@ FEATURE_ORDER = [
     "Stress_Level", "Self_Esteem_Score",
     "Life_Satisfaction_Score", "Loneliness_Score"
 ]
+persistent_features = { col: 0.0 for col in FEATURE_ORDER }
 
 def get_anxiety_level(score):
     score = int(score)
@@ -55,21 +56,21 @@ else:
 import pandas as pd
 
 def classify_user(features_tuple: tuple) -> str:
-    features, confidence_scores = features_tuple  # Unpack the tuple here
+    global persistent_features
+    new_feats, confidence_scores = features_tuple
 
-    # Build a clean row with exactly the nine model features,
-    # coercing to float (and defaulting invalid/missing to 0.0)
-    row = {}
-    for col in FEATURE_ORDER:
-        val = features.get(col, 0)
+    # only overwrite keys the user _actually_ mentioned:
+    for col, val in new_feats.items():
         try:
-            row[col] = float(val)
+            persistent_features[col] = float(val)
         except Exception:
-            row[col] = 0.0
+            # non-numeric or missing → leave the old value
+            pass
 
-    df_user = pd.DataFrame([row], columns=FEATURE_ORDER)
+    # now build your DF from the merged state:
+    df_user = pd.DataFrame([persistent_features], columns=FEATURE_ORDER)
 
-    # debug log: drop this once it works
+    # debug
     print("-- df_user dtypes --\n", df_user.dtypes)
     print("-- df_user head --\n", df_user)
 
