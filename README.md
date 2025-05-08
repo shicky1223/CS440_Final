@@ -22,6 +22,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env      # create your own .env file
 
+
 This project uses python-dotenv to load sensitive values. In your project root, edit .env to include:
 # Hugging Face API token for loading the language model
 HF_TOKEN=your_huggingface_token_here
